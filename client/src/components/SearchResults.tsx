@@ -11,8 +11,10 @@ import {
   ArrowRight,
   Check,
   Loader2,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getServiceInfo as getServiceInfoFromLib } from "@/lib/facility-data";
 import { searchFacilities } from "@/lib/api";
 import { mentalHealthFilters, substanceAbuseFilters } from "@/lib/filter-data";
@@ -95,7 +97,8 @@ function StateDropdown({
   const selectedOption = STATE_OPTIONS.find(opt => opt.value === value);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <TooltipProvider delayDuration={150}>
+      <div className="relative" ref={dropdownRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -130,6 +133,7 @@ function StateDropdown({
         </div>
       )}
     </div>
+    </TooltipProvider>
   );
 }
 
@@ -302,6 +306,35 @@ function ResultCard({
       </div>
     </div>
   );
+}
+
+
+const CATEGORY_HELP: Record<string, string> = {
+  "Age Groups": "Who the program serves by age (e.g., adolescents, adults, seniors).",
+  "Ancillary Services": "Extra supports beyond therapy (case management, transportation, housing help, etc.).",
+  "Assessment": "Screening, evaluation, and intake assessment services.",
+  "Detoxification Services": "Withdrawal management options (e.g., alcohol, opioids, stimulants).",
+  "Emergency Services": "Urgent/crisis services (walk-in, hotline, mobile crisis, etc.).",
+  "Education Services": "Education and training offered (health education, substance use education, etc.).",
+  "Facility Type": "What kind of provider this is (clinic, hospital, community center, etc.).",
+  "Facility Operation": "Operational details (hours, 24/7 availability, weekend services, etc.).",
+  "Language Services": "Languages supported and interpretation options.",
+  "Licenses/Certs": "Accreditations, licenses, and certifications.",
+  "Opioid Medications": "Medications related to opioid treatment/withdrawal (e.g., buprenorphine, methadone, naltrexone).",
+  "Payment Accepted": "Payment types accepted (insurance, Medicaid/Medicare, self-pay, etc.).",
+  "Payment Assistance": "Financial help options (sliding scale, assistance programs).",
+  "Pharmacotherapies": "Medication-based treatments offered.",
+  "Smoking Policy": "Smoking/vaping policy at the facility.",
+  "Special Programs": "Programs for specific groups (veterans, adolescents, LGBTQ+, etc.).",
+  "Service Setting": "Where care is delivered (outpatient, inpatient, residential, telehealth, etc.).",
+  "Testing": "Testing services available (drug testing, HIV/hepatitis screening, etc.).",
+  "Treatment Approaches": "Therapies and treatment models used (CBT, DBT, group therapy, etc.).",
+  "Type of Care": "The primary type of treatment offered (substance use, mental health, or both).",
+  "Hospitals": "Hospital-based services available at this provider.",
+};
+
+function getCategoryHelpText(categoryName: string) {
+  return CATEGORY_HELP[categoryName] || `Filter facilities by ${categoryName.toLowerCase()} options.`;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -547,9 +580,25 @@ export function SearchResults({ directory }: SearchResultsProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {visibleCategories.map(([categoryName, services]) => (
               <div key={categoryName}>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                  {categoryName}
-                </label>
+                <div className="mb-3 flex items-center gap-2">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {categoryName}
+                  </label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label={`About ${categoryName}`}
+                        className="inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <Info className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-sm leading-snug">{getCategoryHelpText(categoryName)}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <MultiSelectDropdown
                   label={categoryName}
                   options={services}
